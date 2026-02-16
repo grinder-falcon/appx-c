@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="data/bootstrap.min.css" media="screen" />
+    <title>Appx-C</title>
+    <style>
+      body {
+        height: 100vh;
+        background-color: #fff;
+        padding-top: 80px;
+      }
+      .cp {
+        cursor: pointer;
+      }
+      .brdr {
+        background-color: #f2f2f2;
+        border: none;
+        border-radius: 30px;
+        padding: 10px 20px;
+        font-size: 16px;
+        text-align: center;
+      }
+      .form-check-input {
+        margin-left: -2rem !important;
+        cursor: pointer;
+      }
+      #ulSearchResult {
+        width: calc(100% - 40px);
+        transform: translate3d(20px, 46.4px, 0px) !important;
+      }
+      .btn-outline-primary {
+        background-color: #fff;
+        border-radius: 30px;
+      }
+      .input-group-text {
+        border-radius: 30px;
+      }
+      .form-switch {
+        border-top-right-radius: 30px;
+        border-bottom-right-radius: 30px;
+      }
+      @media (min-width: 576px) {
+        .head {
+          font-size: 20px;
+          margin-left: calc(50% - 190px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h5
+      style="
+        text-align: center;
+        margin-bottom: 80px;
+        font-weight: bold;
+        color: #333;
+      "
+    >
+      APPX-C TOOL
+    </h5>
+
+    <div class="container-fluid">
+      <div class="row justify-content-center" style="padding-bottom: 20px">
+        <div class="col-xs-12 col-md-9 col-lg-7">
+          <div class="dropdown">
+            <input
+              id="txtSearchWord"
+              type="text"
+              class="form-control dropdown-toggle brdr"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              placeholder="Enter Word to Search Abvns..."
+            />
+            <ul
+              id="ulSearchResult"
+              class="dropdown-menu"
+              aria-labelledby="txtSearchWord"
+            >
+              <li>
+                <a class="dropdown-item disabled" href="#"
+                  >Enter Word to Search Abvns...</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="row justify-content-center" style="padding-bottom: 20px">
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-2">
+          <div class="input-group">
+            <span class="input-group-text">Experimental</span>
+            <span class="form-control form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="checkPlurals"
+                title="Enable suffix 's' for Plural words"
+              />
+              <label
+                class="form-check-label cp"
+                for="checkPlurals"
+                title="Enable suffix 's' for Plural words"
+                >Plurals</label
+              >
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer
+      style="
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        text-align: center;
+        color: #888;
+        padding: 10px;
+        width: 100%;
+      "
+    >
+      &copy; 2024. Created by Falcon.
+    </footer>
+
+    <script>
+      "use strict";
+      window.onload = function () {
+        if (
+          window.appxCAbvns &&
+          typeof appxCAbvns !== "undefined" &&
+          window.appxCAcronyms &&
+          typeof appxCAcronyms !== "undefined"
+        ) {
+          var txtSearchWord = document.getElementById("txtSearchWord");
+          var ulSearchResult = document.getElementById("ulSearchResult");
+          var checkPlurals = document.getElementById("checkPlurals");
+
+          txtSearchWord.addEventListener("keyup", function (e) {
+            //dynamic search n show abvns from Appx-c
+            ulSearchResult.innerHTML = "";
+            if (txtSearchWord.value.length > 1) {
+              //search only words with len 2 or more
+              ulSearchResult.classList.add("show");
+              txtSearchWord.classList.add("show");
+              txtSearchWord.setAttribute("aria-expanded", true);
+
+              let re1 = new RegExp(txtSearchWord.value, "gi");
+              let matchedWordsObj = {};
+
+              for (const [key, value] of Object.entries(appxCAbvns)) {
+                //search abvns
+                if (key.match(re1) || value.match(re1)) {
+                  matchedWordsObj[key] = value;
+                }
+              }
+              for (const [key, value] of Object.entries(appxCAcronyms)) {
+                //search acronyms
+                if (key.match(re1) || value.match(re1)) {
+                  matchedWordsObj[key] = value;
+                }
+              }
+              if (
+                checkPlurals.checked &&
+                window.appxCPlurals &&
+                typeof appxCPlurals !== "undefined"
+              ) {
+                for (const [key, value] of Object.entries(appxCPlurals)) {
+                  //search abvns for Plurals Words
+                  if (key.match(re1) || value.match(re1)) {
+                    matchedWordsObj[key] = value;
+                  }
+                }
+              }
+
+              if (Object.keys(matchedWordsObj).length > 0) {
+                let liHTML = "";
+                for (const [key, value] of Object.entries(matchedWordsObj)) {
+                  liHTML +=
+                    "<li><span class='dropdown-item cp'>" +
+                    key +
+                    " = " +
+                    value +
+                    "</span></li>";
+                }
+                ulSearchResult.innerHTML = liHTML;
+              } else {
+                ulSearchResult.innerHTML =
+                  "<li><a class='dropdown-item disabled' href='#'>No match...</a></li>";
+              }
+            } else {
+              ulSearchResult.classList.remove("show");
+              ulSearchResult.innerHTML =
+                "<li><a class='dropdown-item disabled' href='#'>Enter word to Search Abvns...</a></li>";
+            }
+          });
+
+          ulSearchResult.addEventListener("click", function (e) {
+            if (e.target && e.target.innerText) {
+              txtSearchWord.value = e.target.innerText;
+            }
+          });
+        } else {
+          alert("Appendix C could not be loaded");
+          console.error("Appendix C could not be loaded");
+        }
+      };
+    </script>
+    <script src="data/bootstrap.bundle.min.js"></script>
+    <script src="data/appx-c-2014-abvns.jsonp"></script>
+    <script src="data/appx-c-2014-acronyms.jsonp"></script>
+    <script src="data/appx-c-2014-plurals.jsonp"></script>
+  </body>
+</html>
